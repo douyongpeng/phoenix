@@ -69,7 +69,8 @@ public class ColumnMappingUtils {
     public static List<String> quoteColumns(List<String> readColumnList) {
         List<String> newList = new LinkedList<>();
         for(String column : readColumnList) {
-            newList.add("\""+ column + "\"");
+            if (!column.isEmpty())
+              newList.add("\""+ column + "\"");
         }
         return newList;
     }
