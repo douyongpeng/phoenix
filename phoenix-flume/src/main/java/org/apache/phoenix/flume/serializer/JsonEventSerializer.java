@@ -35,6 +35,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.phoenix.schema.types.PDataType;
+import org.apache.phoenix.schema.types.PLong;
+import org.apache.phoenix.schema.types.PTimestamp;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -162,6 +164,7 @@ public class JsonEventSerializer extends BaseEventSerializer {
 					}
 					PDataType pDataType = PDataType.fromTypeId(sqlType);
 					Object upsertValue;
+                                        System.out.println(pDataType);
 					if (pDataType.isArrayType()) {
 						JSONArray jsonArray = new JSONArray(new JSONTokener(value));
 						Object[] vals = new Object[jsonArray.length()];
@@ -174,7 +177,14 @@ public class JsonEventSerializer extends BaseEventSerializer {
 						String baseTypeSqlName = PDataType.arrayBaseType(pDataType).getSqlTypeName();
 						Array array = connection.createArrayOf(baseTypeSqlName, vals);
 						upsertValue = pDataType.toObject(array, pDataType);
-					} else {
+					} else if (pDataType == PTimestamp.INSTANCE) {
+                                                System.out.println(value);
+						if (value.matches("\\d+")) { // if it's  a Long value as time stamp
+							upsertValue = pDataType.toObject(Long.parseLong(value), PLong.INSTANCE);
+						} else {
+							upsertValue = pDataType.toObject(value);
+						}
+                                        } else {
 						upsertValue = pDataType.toObject(value);
 					}
 					if (upsertValue != null) {
