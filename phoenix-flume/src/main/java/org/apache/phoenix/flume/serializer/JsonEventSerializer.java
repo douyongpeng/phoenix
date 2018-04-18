@@ -164,7 +164,6 @@ public class JsonEventSerializer extends BaseEventSerializer {
 					}
 					PDataType pDataType = PDataType.fromTypeId(sqlType);
 					Object upsertValue;
-                                        System.out.println(pDataType);
 					if (pDataType.isArrayType()) {
 						JSONArray jsonArray = new JSONArray(new JSONTokener(value));
 						Object[] vals = new Object[jsonArray.length()];
@@ -178,7 +177,6 @@ public class JsonEventSerializer extends BaseEventSerializer {
 						Array array = connection.createArrayOf(baseTypeSqlName, vals);
 						upsertValue = pDataType.toObject(array, pDataType);
 					} else if (pDataType == PTimestamp.INSTANCE) {
-                                                System.out.println(value);
 						if (value.matches("\\d+")) { // if it's  a Long value as time stamp
 							upsertValue = pDataType.toObject(Long.parseLong(value), PLong.INSTANCE);
 						} else {
