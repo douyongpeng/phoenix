@@ -140,11 +140,11 @@ public class JsonEventSerializer extends BaseEventSerializer {
 					data.put(colName, value);
 				}
 
-				Collection<String> values = data.values();
-				if (values.contains(null)) {
-					logger.debug("payload data {} doesn't match the fields mapping {} ", inputJson, jsonSchema);
-					continue;
-				}
+//				Collection<String> values = data.values();
+//				if (values.contains(null)) {
+//					logger.debug("payload data {} doesn't match the fields mapping {} ", inputJson, jsonSchema);
+//					continue;
+//				}
 
 				int index = 1;
 				int offset = 0;
@@ -155,14 +155,22 @@ public class JsonEventSerializer extends BaseEventSerializer {
 					String colName = colNames.get(i);
 					value = data.get(colName);
 					sqlType = columnMetadata[offset].getSqlType();
+					// if the value is null, setNull
+					if (value == null) {
+						colUpsert.setNull(index++, sqlType);
+						continue;
+					}
 					PDataType pDataType = PDataType.fromTypeId(sqlType);
 					Object upsertValue;
 					if (pDataType.isArrayType()) {
 						JSONArray jsonArray = new JSONArray(new JSONTokener(value));
 						Object[] vals = new Object[jsonArray.length()];
+						PDataType baseType = PDataType.arrayBaseType(pDataType);
 						for (int x = 0; x < jsonArray.length(); x++) {
-							vals[x] = jsonArray.get(x);
+							//vals[x] = jsonArray.get(x);
+							vals[x] = baseType.toObject(jsonArray.get(x).toString());
 						}
+
 						String baseTypeSqlName = PDataType.arrayBaseType(pDataType).getSqlTypeName();
 						Array array = connection.createArrayOf(baseTypeSqlName, vals);
 						upsertValue = pDataType.toObject(array, pDataType);
@@ -201,7 +209,8 @@ public class JsonEventSerializer extends BaseEventSerializer {
 			connection.commit();
 		} catch (Exception ex) {
 			logger.error("An error {} occurred during persisting the event ", ex.getMessage());
-			throw new SQLException(ex.getMessage());
+			ex.printStackTrace();
+			//throw new SQLException(ex.getMessage());
 		} finally {
 			if (wasAutoCommit) {
 				connection.setAutoCommit(true);
