@@ -33,4 +33,8 @@ package object spark {
   implicit def toDataFrameFunctions(data: DataFrame): DataFrameFunctions = {
     new DataFrameFunctions(data)
   }
+
+
+  // multitables
+
 }
